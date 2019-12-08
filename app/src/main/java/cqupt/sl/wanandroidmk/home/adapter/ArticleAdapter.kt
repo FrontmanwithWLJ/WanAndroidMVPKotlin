@@ -1,15 +1,16 @@
-package cqupt.sl.wanandroidmk.home
+package cqupt.sl.wanandroidmk.home.adapter
 
-import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.view.marginTop
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import cqupt.sl.wanandroidmk.R
+import cqupt.sl.wanandroidmk.home.ArticleItem
+import cqupt.sl.wanandroidmk.home.FragmentHome
 import cqupt.sl.wanandroidmk.texthelper.TextHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -41,7 +42,9 @@ class ArticleAdapter(
             BANNER -> {
                 val view = LayoutInflater.from(mContext.context)
                     .inflate(R.layout.home_banner, parent, false)
-                BannerViewHolder(view)
+                BannerViewHolder(
+                    view
+                )
             }
             COMMON -> {
                 val view = LayoutInflater.from(mContext.context)
@@ -51,12 +54,16 @@ class ArticleAdapter(
             TOP ->{
                 val view = LayoutInflater.from(mContext.context)
                     .inflate(R.layout.home_article_item,parent,false)
-                TopViewHolder(view)
+                TopViewHolder(
+                    view
+                )
             }
             else -> {
                 val view = LayoutInflater.from(mContext.context)
                     .inflate(R.layout.home_foottip, parent, false)
-                FootViewHolder(view)
+                FootViewHolder(
+                    view
+                )
             }
         }
     }
@@ -69,13 +76,12 @@ class ArticleAdapter(
         val item = articles[position]
         when (holder) {
             is BannerViewHolder -> {
-                holder.banner.id = position+1
-                banner = holder.banner
-                banner.adapter = bannerAdapter
-                //禁止滑动
-                banner.setOnTouchListener { _, _ -> false }
+                    banner = holder.banner
+                    banner.adapter = bannerAdapter
+                    //禁止滑动
+                    banner.setOnTouchListener { _, _ -> false }
             }
-            is TopViewHolder->{
+            is TopViewHolder ->{
                 holder.author.text = item.author
                 holder.title.text = TextHelper.replaceStr(item.title)
                 holder.date.text = item.niceDate

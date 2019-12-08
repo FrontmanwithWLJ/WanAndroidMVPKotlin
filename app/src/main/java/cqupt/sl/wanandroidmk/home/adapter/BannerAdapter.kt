@@ -1,4 +1,4 @@
-package cqupt.sl.wanandroidmk.home
+package cqupt.sl.wanandroidmk.home.adapter
 
 import android.view.View
 import android.view.ViewGroup

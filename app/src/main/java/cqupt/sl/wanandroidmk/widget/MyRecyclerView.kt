@@ -13,7 +13,7 @@ class MyRecyclerView:RecyclerView {
     private var canPullUp = false
     private var isMoved = false
     //记录自身初始的位置
-    private lateinit var originRect: Rect
+    private val originRect = Rect()
     //第一次按下的位置
     private var startY = 0f
     //阻尼系数
@@ -24,7 +24,8 @@ class MyRecyclerView:RecyclerView {
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         super.onLayout(changed, l, t, r, b)
-        originRect= Rect(this.left,this.top,this.right,this.bottom)
+        originRect.set(this.left,this.top,this.right,this.bottom)
+        Log.e("SL","onLayout originRect.left = ${originRect.left},top=${originRect.top},right=${originRect.right},bottom=${originRect.bottom}")
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
@@ -38,19 +39,20 @@ class MyRecyclerView:RecyclerView {
             MotionEvent.ACTION_UP->{
                 Log.e("SL","up")
                 if(!isMoved)return super.dispatchTouchEvent(ev)
-                //Log.e("SL","back")
+                Log.e("SL","back")
                 //执行弹回动画
                 val reBack = TranslateAnimation(0f,0f
                     ,this.top.toFloat(),originRect.top.toFloat())
                 reBack.duration = 100
                 this.startAnimation(reBack)
                 //回到原处
+                Log.e("SL","this.left = ${this.left},top=${this.top},right=${this.right},bottom=${this.bottom}")
                 this.layout(originRect.left,originRect.top,originRect.right,originRect.bottom)
-
+                Log.e("SL","originRect.left = ${originRect.left},top=${originRect.top},right=${originRect.right},bottom=${originRect.bottom}")
                 canPullDown = false
                 canPullUp = false
                 isMoved = false
-                isNestedScrollingEnabled = true
+                //isNestedScrollingEnabled = true
             }
             MotionEvent.ACTION_MOVE->{
                 Log.e("SL","move")
@@ -69,7 +71,7 @@ class MyRecyclerView:RecyclerView {
                     this.layout(originRect.left,originRect.top+offsetY
                         ,originRect.right,originRect.bottom+offsetY)
                     isMoved = true
-                    isNestedScrollingEnabled = false
+                    //isNestedScrollingEnabled = false
                 }
             }
         }

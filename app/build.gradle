@@ -44,4 +44,6 @@ dependencies {
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1'
     implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'com.reoobter:ultrapullview:1.0.1'
+    implementation 'in.srain.cube:ultra-ptr:1.0.11'
 }

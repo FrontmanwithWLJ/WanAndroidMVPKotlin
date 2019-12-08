@@ -1,16 +1,19 @@
 package cqupt.sl.wanandroidmk.home
 
+import `in`.srain.cube.views.ptr.PtrFrameLayout
+import `in`.srain.cube.views.ptr.PtrHandler
+import `in`.srain.cube.views.ptr.header.StoreHouseHeader
 import android.annotation.SuppressLint
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
-import android.view.animation.TranslateAnimation
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -18,16 +21,16 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import cqupt.sl.wanandroidmk.MainActivity
 import cqupt.sl.wanandroidmk.R
+import cqupt.sl.wanandroidmk.home.adapter.ArticleAdapter
+import cqupt.sl.wanandroidmk.home.adapter.BannerAdapter
+import cqupt.sl.wanandroidmk.home.adapter.HeaderAdapter
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.concurrent.locks.ReentrantLock
 
 class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeContract.View,
     View.OnTouchListener {
-    //toolbar动画锁
-    private val tLook = ReentrantLock()
     //轮播图
     private val bannerList = ArrayList<String>()
     private lateinit var bannerAdapter: BannerAdapter
@@ -75,9 +78,10 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
     @SuppressLint("ResourceType")
     private fun init() {
         //将toolbar放在所有视图的前面，不被遮挡
-        toolbar.bringToFront()
+        //toolbar.bringToFront()
 
-        bannerAdapter = BannerAdapter(bannerList)
+        bannerAdapter =
+            BannerAdapter(bannerList)
         val linearLayoutManager = LinearLayoutManager(context)
         home_article.layoutManager = linearLayoutManager
         //设置分割线
@@ -88,13 +92,46 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
         }
         home_article.addItemDecoration(divider)
 
-        articleAdapter = ArticleAdapter(articleList, this,bannerAdapter)
+        articleAdapter = ArticleAdapter(
+            articleList,
+            this,
+            bannerAdapter
+        )
         home_article.adapter = articleAdapter
+        //var listView = ListView(this as Context)
         //首次加载传入-1加载置顶文章加载一页普通文章
         homePresenter.getBanner()
         homePresenter.getTopArticle()
         homePresenter.getArticle(currentIndex++)
         home_article.setOnTouchListener(this)
+        //banners.requestFocus()
+        //refresh.setBaseHeaderAdapter(HeaderAdapter(context))
+        val header = StoreHouseHeader(context)
+        header.setTextColor(Color.BLACK)
+        header.setPadding(0,50,0,0)
+        header.initWithString("WanAndroid")
+        val textView = TextView(context)
+        textView.text = "WanAndroid"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            textView.textAlignment = View.TEXT_ALIGNMENT_CENTER
+        }
+        refresh.headerView = textView
+        refresh.setPtrHandler(object : PtrHandler{
+            override fun onRefreshBegin(frame: PtrFrameLayout?) {
+                Toast.makeText(context,"Begin to Refresh",Toast.LENGTH_SHORT).show()
+                frame?.postDelayed({
+                    refresh.refreshComplete()
+                },2000)
+            }
+
+            override fun checkCanDoRefresh(
+                frame: PtrFrameLayout?,
+                content: View?,
+                header: View?
+            ): Boolean {
+                return !home_article.canScrollVertically(-1)
+            }
+        })
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -109,7 +146,7 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
                 return false
             oldY = event.rawY
             //Log.e("SL","offset=${offsetY},toolbar location = ${toolbar.y}")
-            Thread{moveToolbar(offsetY)}.run()
+            //Thread{moveToolbar(offsetY)}.run()
             Thread{mainActivity.moveTabLayout(offsetY)}.run()
         }
 

@@ -3,6 +3,7 @@ package cqupt.sl.wanandroidmk.widget;
 import android.content.Context;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.TranslateAnimation;
@@ -73,10 +74,11 @@ public class MyScrollView extends ScrollView {
         super.onLayout(changed, l, t, r, b);
 
         if(contentView == null) return;
-
         //ScrollView中的唯一子控件的位置信息, 这个位置信息在整个控件的生命周期中保持不变
         originalRect.set(contentView.getLeft(), contentView.getTop(), contentView
                 .getRight(), contentView.getBottom());
+        Log.e("SL","onLayout originRect.left = "+originalRect.left+",top="+originalRect.top+"right="+originalRect.right+",bottom="+originalRect.bottom);
+
     }
     //在触摸事件中, 处理上拉和下拉的逻辑
     @Override

@@ -6,6 +6,11 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="toolbarStyle">@style/NewToolBar</item>
+    </style>
+
+    <style name="NewToolBar" parent="Widget.AppCompat.Toolbar">
+        <item name="contentInsetStart">0dp</item>
     </style>
 
 </resources>

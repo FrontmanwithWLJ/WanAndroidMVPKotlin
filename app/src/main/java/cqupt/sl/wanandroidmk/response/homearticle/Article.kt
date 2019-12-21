@@ -1,6 +1,6 @@
 package cqupt.sl.wanandroidmk.response.homearticle
 
-data class ArticleList(
+data class Article(
     val `data`: Data,
     val errorCode: Int,
     val errorMsg: String

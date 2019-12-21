@@ -1,6 +1,6 @@
 package cqupt.sl.wanandroidmk.home
 
-data class Article(
+data class ArticleItem(
     val name: String,
     val date: String,
     val title: String,

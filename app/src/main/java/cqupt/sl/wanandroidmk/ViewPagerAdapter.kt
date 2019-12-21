@@ -1,20 +1,21 @@
 package cqupt.sl.wanandroidmk
 
-import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import androidx.viewpager2.widget.ViewPager2
+import cqupt.sl.wanandroidmk.home.FragmentHome
 
-class ViewPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
+class ViewPagerAdapter(fragment: MainActivity, private val count: Int) : FragmentStateAdapter(fragment) {
 
     override fun getItemCount(): Int {
-        return 0
+        return count
     }
 
     override fun createFragment(position: Int): Fragment {
-        return Fragment()
+        return when(position){
+            0-> FragmentHome()
+            1-> FragmentHome()
+            else-> Fragment()
+        }
     }
 
 }

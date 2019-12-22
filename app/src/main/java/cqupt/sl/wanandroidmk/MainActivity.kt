@@ -23,6 +23,5 @@ class MainActivity : AppCompatActivity() {
         }
         viewPager = findViewById(R.id.fragment)
         viewPager.adapter = ViewPagerAdapter(this,2)
-
     }
 }

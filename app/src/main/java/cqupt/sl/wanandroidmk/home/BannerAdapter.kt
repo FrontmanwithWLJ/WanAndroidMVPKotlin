@@ -11,7 +11,6 @@ import com.bumptech.glide.Glide
 class BannerAdapter(private val pictureList:List<String>, private val context: Context): PagerAdapter() {
 
     override fun instantiateItem(container : ViewGroup, position : Int):Any {
-        //Log.e("SL","POSITION=$position URL=${pictureList[0]}")
         val image = ImageView(context)
         if (position == count-1) {
             Glide.with(context)

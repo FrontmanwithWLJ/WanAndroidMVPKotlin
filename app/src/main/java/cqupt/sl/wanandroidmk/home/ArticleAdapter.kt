@@ -1,6 +1,7 @@
 package cqupt.sl.wanandroidmk.home
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,8 +10,17 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import cqupt.sl.wanandroidmk.R
+import cqupt.sl.wanandroidmk.texthelper.TextHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-class ArticleAdapter(private val articles: ArrayList<ArticleItem>, private val mContext: FragmentHome) :
+class ArticleAdapter(
+    private val articles: ArrayList<ArticleItem>,
+    private val mContext: FragmentHome,
+    private val bannerAdapter: BannerAdapter
+) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val BANNER = 0
@@ -18,19 +28,28 @@ class ArticleAdapter(private val articles: ArrayList<ArticleItem>, private val m
     private val FOOT = 2
     private var tips = "正在加载更多数据..."
 
+    //轮播线程是否开启
+    private var bannerRun = false
+    //banner是否离开了页面
+    private var isBannerAttach = false
+    private lateinit var banner:ViewPager
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         //mContext.inflate()方式加载会导致item不占满屏幕
         return when (viewType) {
-            BANNER->{
-                val view = LayoutInflater.from(mContext.context).inflate(R.layout.home_banner,parent,false)
+            BANNER -> {
+                val view = LayoutInflater.from(mContext.context)
+                    .inflate(R.layout.home_banner, parent, false)
                 BannerViewHolder(view)
             }
             COMMON -> {
-                val view = LayoutInflater.from(mContext.context).inflate(R.layout.home_article_item,parent,false)
+                val view = LayoutInflater.from(mContext.context)
+                    .inflate(R.layout.home_article_item, parent, false)
                 ViewHolder(view)
             }
             else -> {
-                val view = LayoutInflater.from(mContext.context).inflate(R.layout.home_foottip,parent,false)
+                val view = LayoutInflater.from(mContext.context)
+                    .inflate(R.layout.home_foottip, parent, false)
                 FootViewHolder(view)
             }
         }
@@ -42,25 +61,52 @@ class ArticleAdapter(private val articles: ArrayList<ArticleItem>, private val m
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val item = articles[position]
-        if (holder is BannerViewHolder){
-            holder.banner = mContext.getBanner()
+        when (holder) {
+            is BannerViewHolder -> {
+                banner = holder.banner
+                banner.adapter = bannerAdapter
+                //禁止滑动
+                banner.setOnTouchListener { _, _ -> false }
+            }
+            is TopViewHolder->{
+                holder.author.text = item.author
+                holder.title.text = TextHelper.replaceStr(item.title)
+                holder.date.text = item.niceDate
+                holder.tags.removeAllViews()
+                item.tags.forEach {
+                    val textView = TextView(mContext.context)
+                    textView.text = it.name
+                    textView.setBackgroundResource(R.drawable.home_tag_item)
+                    holder.tags.addView(textView)
+                }
+            }
+            is ViewHolder -> {
+                holder.author.text = item.author
+                holder.title.text = TextHelper.replaceStr(item.title)
+                holder.date.text = item.niceDate
+                holder.tags.removeAllViews()
+                item.tags.forEach {
+                    val textView = TextView(mContext.context)
+                    textView.text = it.name
+                    textView.setBackgroundResource(R.drawable.home_tag_item)
+                    holder.tags.addView(textView)
+                }
+            }
+            is FootViewHolder -> {
+                holder.tips.text = tips
+            }
         }
-        if (holder is ViewHolder) {
-            holder.author.text = item.author
-            holder.title.text = item.title
-            holder.date.text = item.niceDate
-            if (item.isTop){
-                holder.top.visibility = View.VISIBLE
-            }
-            val tags = item.tags
-            tags.forEach {
-                val textView = TextView(mContext.context)
-                textView.text = it.name
-                textView.setBackgroundResource(R.drawable.home_tag_item)
-                holder.tags.addView(textView)
-            }
-        } else if (holder is FootViewHolder) {
-            holder.tips.text = tips
+    }
+
+    override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {
+        if (holder is BannerViewHolder){
+            isBannerAttach = true
+        }
+    }
+
+    override fun onViewDetachedFromWindow(holder: RecyclerView.ViewHolder) {
+        if (holder is BannerViewHolder){
+            isBannerAttach = false
         }
     }
 
@@ -77,14 +123,43 @@ class ArticleAdapter(private val articles: ArrayList<ArticleItem>, private val m
         var author: TextView = itemView.findViewById(R.id.author)
         var date: TextView = itemView.findViewById(R.id.date)
         var tags: LinearLayout = itemView.findViewById(R.id.tags)
-        var top:TextView = itemView.findViewById(R.id.home_article_top)
+    }
+
+    class TopViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        var title: TextView = itemView.findViewById(R.id.title)
+        var author: TextView = itemView.findViewById(R.id.author)
+        var date: TextView = itemView.findViewById(R.id.date)
+        var tags: LinearLayout = itemView.findViewById(R.id.tags)
+        var top: TextView = itemView.findViewById(R.id.home_article_top)
     }
 
     class FootViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var tips: TextView = itemView.findViewById(R.id.tips)
     }
 
-    class BannerViewHolder(itemView: View):RecyclerView.ViewHolder(itemView){
-        var banner:ViewPager = itemView.findViewById(R.id.banner)
+    class BannerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        var banner: ViewPager = itemView.findViewById(R.id.banner)
     }
+
+    //协程来实现轮播图
+    fun startBanner(i:Int){
+        if (bannerRun){
+            return
+        }
+        var index = i
+        GlobalScope.launch (Dispatchers.Main) {
+            bannerRun = true
+            while (bannerRun && isBannerAttach) {
+                banner.currentItem = index++
+                if (index == bannerAdapter.count+1) {
+                    banner.setCurrentItem(0, false)
+                    index = 1
+                }
+                delay(3000)
+            }
+        }
+        bannerRun = false
+    }
+
+
 }

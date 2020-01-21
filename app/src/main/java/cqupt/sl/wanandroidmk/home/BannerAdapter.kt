@@ -8,16 +8,16 @@ import android.widget.ImageView
 import androidx.viewpager.widget.PagerAdapter
 import com.bumptech.glide.Glide
 
-class BannerAdapter(private val pictureList:List<String>, private val context: Context): PagerAdapter() {
+class BannerAdapter(private val pictureList:List<String>): PagerAdapter() {
 
     override fun instantiateItem(container : ViewGroup, position : Int):Any {
-        val image = ImageView(context)
+        val image = ImageView(container.context)
         if (position == count-1) {
-            Glide.with(context)
+            Glide.with(container.context)
                 .load(pictureList[0])
                 .into(image)
         } else {
-            Glide.with(context)
+            Glide.with(container.context)
                 .load(pictureList[position])
                 .into(image)
         }

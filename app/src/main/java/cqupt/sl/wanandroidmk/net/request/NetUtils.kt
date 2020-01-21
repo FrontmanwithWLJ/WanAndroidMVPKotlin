@@ -1,6 +1,7 @@
 package cqupt.sl.wanandroidmk.net.request
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import cqupt.sl.wanandroidmk.net.callback.NetCallBack
 import cqupt.sl.wanandroidmk.net.service.HttpServices
 import okhttp3.RequestBody
@@ -21,9 +22,11 @@ object NetUtils {
     private lateinit var baseUrl: String
     private var successCode: Int = 0
     private val retrofit: Retrofit by lazy {
+        //去除转义斜杠
+        val gson = GsonBuilder().disableHtmlEscaping().create()
         Retrofit.Builder()
             .baseUrl(baseUrl)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
 
@@ -63,7 +66,6 @@ object NetUtils {
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                     netCallBack.onFailure(null)
                 }
-
                 override fun onResponse(
                     call: Call<ResponseBody>,
                     response: Response<ResponseBody>

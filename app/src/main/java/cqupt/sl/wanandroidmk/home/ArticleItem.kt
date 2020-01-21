@@ -33,7 +33,7 @@ data class ArticleItem(
     val userId: Int,
     val visible: Int,
     val zan: Int,
-    var isTop: Boolean = false
+    var isTop:Boolean = false
 ){
     data class Tag(
         val name: String,

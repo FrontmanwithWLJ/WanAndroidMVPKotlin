@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:cardElevation="8dp"
+    app:cardElevation="6dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -31,11 +31,13 @@
                 android:id="@+id/home_article_top"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:paddingLeft="2dp"
+                android:paddingRight="2dp"
                 android:layout_marginRight="10dp"
-                android:visibility="gone"
                 android:background="@drawable/top_btn_shape"
                 android:text="@string/top"
-                android:textColor="@android:color/holo_red_light" />
+                android:textColor="@android:color/holo_red_light"
+                android:layout_marginEnd="10dp" />
 
             <TextView
                 android:id="@+id/author"

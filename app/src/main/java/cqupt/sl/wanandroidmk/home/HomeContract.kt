@@ -10,6 +10,7 @@ import cqupt.sl.wanandroidmk.response.homearticle.TopArticle
 interface HomeContract {
     interface Presenter:BasePresenter{
         fun getBanner()
+        fun getTopArticle()
         fun getArticle(page:Int)
     }
 

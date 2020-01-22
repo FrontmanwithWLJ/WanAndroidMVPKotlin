@@ -17,8 +17,4 @@ class MyViewPager(context: Context) : ViewPager(context) {
         return  false
     }
 
-    override fun setAdapter(adapter: PagerAdapter?) {
-        super.setAdapter(adapter)
-    }
-
 }

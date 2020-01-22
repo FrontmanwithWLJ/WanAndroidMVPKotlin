@@ -105,6 +105,8 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
         }
         if (event?.action == MotionEvent.ACTION_MOVE) {
             val offsetY = event.rawY-oldY
+            if (offsetY in -2f..2f)
+                return false
             oldY = event.rawY
             //Log.e("SL","offset=${offsetY},toolbar location = ${toolbar.y}")
             Thread{moveToolbar(offsetY)}.run()

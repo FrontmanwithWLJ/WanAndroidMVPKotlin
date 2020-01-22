@@ -69,6 +69,7 @@ class ArticleAdapter(
         val item = articles[position]
         when (holder) {
             is BannerViewHolder -> {
+                holder.banner.id = position+1
                 banner = holder.banner
                 banner.adapter = bannerAdapter
                 //禁止滑动

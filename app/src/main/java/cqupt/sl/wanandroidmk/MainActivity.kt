@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
         }
         viewPager = findViewById(R.id.fragment)
         tabLayout = tab
-        viewPager.adapter = ViewPagerAdapter(this,2)
+        viewPager.adapter = ViewPagerAdapter(this,1)
     }
 
     /**
@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity() {
         //tabLayout.y = offsetY
         val newY = tabLayout.y
         val bottomLine = tabLayoutY + tabLayoutHeight
-        Log.e("SL", "offset$offsetY,y = ${tabLayout.y},bottomLine = $bottomLine,tabLayoutY = $tabLayoutY")
+        //Log.e("SL", "offset$offsetY,y = ${tabLayout.y},bottomLine = $bottomLine,tabLayoutY = $tabLayoutY")
         if (offsetY < 0 && newY in tabLayoutY..bottomLine) {
             tabLayout.y = when {
                 tabLayout.y - offsetY > bottomLine -> bottomLine

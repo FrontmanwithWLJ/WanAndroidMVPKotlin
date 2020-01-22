@@ -2,6 +2,7 @@ package cqupt.sl.wanandroidmk.widget
 
 import android.content.Context
 import android.view.MotionEvent
+import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
 
 /**
@@ -15,4 +16,9 @@ class MyViewPager(context: Context) : ViewPager(context) {
     override fun onTouchEvent(ev:MotionEvent) :Boolean {
         return  false
     }
+
+    override fun setAdapter(adapter: PagerAdapter?) {
+        super.setAdapter(adapter)
+    }
+
 }

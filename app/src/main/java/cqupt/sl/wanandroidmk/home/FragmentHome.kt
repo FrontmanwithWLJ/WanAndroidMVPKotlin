@@ -4,9 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
-import android.util.AttributeSet
 import android.util.Log
-import android.util.Xml
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -18,26 +16,21 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.viewpager.widget.ViewPager
+import cqupt.sl.wanandroidmk.MainActivity
 import cqupt.sl.wanandroidmk.R
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.xmlpull.v1.XmlPullParser
 import java.util.concurrent.locks.ReentrantLock
 
-class FragmentHome : Fragment(), HomeContract.View,
+class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeContract.View,
     View.OnTouchListener {
-
     //toolbar动画锁
     private val tLook = ReentrantLock()
-
     //轮播图
     private val bannerList = ArrayList<String>()
     private lateinit var bannerAdapter: BannerAdapter
-
     //文章列表
     private val articleList = ArrayList<ArticleItem>()
     private lateinit var articleAdapter: ArticleAdapter
@@ -45,9 +38,7 @@ class FragmentHome : Fragment(), HomeContract.View,
     private var currentIndex = 0
     //记录用户触摸位置
     private var oldY: Float = 0f
-
     private var homePresenter = HomePresenter(this)
-
     private val handler = @SuppressLint("HandlerLeak")
     object : Handler() {
         override fun handleMessage(msg: Message) {
@@ -86,15 +77,8 @@ class FragmentHome : Fragment(), HomeContract.View,
         //将toolbar放在所有视图的前面，不被遮挡
         toolbar.bringToFront()
 
-//        val xmlPullParser = resources.getXml(R.layout.home_banner)
-//        val attr = Xml.asAttributeSet(xmlPullParser)
         bannerAdapter = BannerAdapter(bannerList)
         val linearLayoutManager = LinearLayoutManager(context)
-//        val linearLayoutManager = object : LinearLayoutManager(context) {
-//            override fun canScrollVertically(): Boolean {
-//                return false
-//            }
-//        }
         home_article.layoutManager = linearLayoutManager
         //设置分割线
         val divider = DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
@@ -113,79 +97,40 @@ class FragmentHome : Fragment(), HomeContract.View,
         home_article.setOnTouchListener(this)
     }
 
-    private fun hideTab() {
-        if (tLook.isLocked || toolbar.visibility == View.GONE) return
-        tLook.lock()
-        val hide = TranslateAnimation(toolbar.x, toolbar.x, toolbar.y, toolbar.y - toolbar.height)
-        hide.duration = 300
-        toolbar.animation = hide
-        toolbar.startAnimation(hide)
-        hide.setAnimationListener(object : Animation.AnimationListener {
-            override fun onAnimationRepeat(animation: Animation?) {}
-
-            override fun onAnimationEnd(animation: Animation?) {
-                //移动位置
-                toolbar.y = toolbar.y - toolbar.height
-                //隐藏
-                toolbar.visibility = View.GONE
-                toolbar.clearAnimation()
-                tLook.unlock()
-            }
-
-            override fun onAnimationStart(animation: Animation?) {
-            }
-        })
-    }
-
-    private fun showTab() {
-        if (tLook.isLocked || toolbar.visibility != View.GONE) return
-        tLook.lock()
-        val show = TranslateAnimation(toolbar.x, toolbar.x, toolbar.y, toolbar.y + toolbar.height)
-        show.duration = 300
-        toolbar.visibility = View.VISIBLE
-        toolbar.animation = show
-        toolbar.startAnimation(show)
-        show.setAnimationListener(object : Animation.AnimationListener {
-            override fun onAnimationRepeat(animation: Animation?) {}
-
-            override fun onAnimationEnd(animation: Animation?) {
-                //隐藏
-                toolbar.clearAnimation()
-                tLook.unlock()
-            }
-
-            override fun onAnimationStart(animation: Animation?) {
-                //移动位置
-                toolbar.y = toolbar.y + toolbar.height
-            }
-        })
-    }
-
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
         if (event?.action == MotionEvent.ACTION_DOWN) {
             oldY = event.rawY
+            return false
         }
         if (event?.action == MotionEvent.ACTION_MOVE) {
-            when {
-                oldY == 0f -> {
-                    oldY = event.rawY
-                    return false
-                }
-                //上滑
-                event.rawY - oldY > 0 -> {
-                    showTab()
-                }
-                //下滑
-                event.rawY - oldY < 0 -> {
-                    hideTab()
-                }
-            }
+            val offsetY = event.rawY-oldY
+            oldY = event.rawY
+            //Log.e("SL","offset=${offsetY},toolbar location = ${toolbar.y}")
+            Thread{moveToolbar(offsetY)}.run()
+            Thread{mainActivity.moveTabLayout(offsetY)}.run()
         }
 
         return false
     }
-
+    /**
+     * @param offsetY 正负代表上下移动tab，数值代表移动距离
+     */
+    private fun moveToolbar(offsetY:Float){
+        val oldY = toolbar.y
+        val height = toolbar.height.toFloat()
+        if (offsetY<0 && oldY in -height..0f){
+            toolbar.y=when{
+                toolbar.y+offsetY<-height-> -height
+                else -> toolbar.y+offsetY
+            }
+        }else if (offsetY>0 && oldY in -height..0f){
+            toolbar.y= when{
+                toolbar.y+offsetY>0f -> 0f
+                else -> toolbar.y+offsetY
+            }
+        }
+    }
     @Synchronized
     override fun onShowBanner(banners: ArrayList<String>) {
         banners.forEach {

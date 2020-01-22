@@ -1,7 +1,5 @@
 package cqupt.sl.wanandroidmk.home
 
-import android.content.Context
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -10,6 +8,7 @@ import com.bumptech.glide.Glide
 
 class BannerAdapter(private val pictureList:List<String>): PagerAdapter() {
 
+    var isLoading = true
     override fun instantiateItem(container : ViewGroup, position : Int):Any {
         val image = ImageView(container.context)
         if (position == count-1) {
@@ -35,5 +34,10 @@ class BannerAdapter(private val pictureList:List<String>): PagerAdapter() {
 
     override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
         container.removeView(`object` as View?)
+    }
+
+    override fun notifyDataSetChanged(){
+        super.notifyDataSetChanged()
+        isLoading = false
     }
 }

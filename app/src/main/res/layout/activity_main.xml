@@ -8,19 +8,22 @@
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/fragment"
-        android:layout_above="@id/tab"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:background="@android:color/white"
         android:overScrollMode="never" />
 
-    <LinearLayout
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/tab"
-        android:layout_alignParentBottom="true"
         android:layout_width="match_parent"
         android:layout_height="40dp"
-        android:orientation="horizontal">
-        <include layout="@layout/bottom_tab"/>
+        android:background="@android:color/white"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:orientation="horizontal"
+        android:layout_alignParentStart="true">
 
-    </LinearLayout>
+        <include layout="@layout/bottom_tab" />
+
+    </androidx.appcompat.widget.Toolbar>
 </RelativeLayout>

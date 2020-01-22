@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
+    android:background="@android:color/white"
     android:layout_height="40dp">
 
     <LinearLayout
@@ -12,8 +13,8 @@
         android:layout_weight="1">
         <ImageView
             android:id="@+id/home_image"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:background="@drawable/ic_home"/>
         <TextView
             android:id="@+id/home"
@@ -36,8 +37,8 @@
         <ImageView
             android:id="@+id/system_image"
             android:background="@drawable/ic_system"
-            android:layout_width="20dp"
-            android:layout_height="20dp"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
         <TextView
             android:id="@+id/system"
             android:textStyle="bold"

@@ -26,6 +26,7 @@ class ArticleAdapter(
     private val BANNER = 0
     private val COMMON = 1
     private val FOOT = 2
+    private val TOP = 3
     private var tips = "正在加载更多数据..."
 
     //轮播线程是否开启
@@ -46,6 +47,11 @@ class ArticleAdapter(
                 val view = LayoutInflater.from(mContext.context)
                     .inflate(R.layout.home_article_item, parent, false)
                 ViewHolder(view)
+            }
+            TOP ->{
+                val view = LayoutInflater.from(mContext.context)
+                    .inflate(R.layout.home_article_item,parent,false)
+                TopViewHolder(view)
             }
             else -> {
                 val view = LayoutInflater.from(mContext.context)
@@ -72,6 +78,7 @@ class ArticleAdapter(
                 holder.author.text = item.author
                 holder.title.text = TextHelper.replaceStr(item.title)
                 holder.date.text = item.niceDate
+                holder.top.visibility = View.VISIBLE
                 holder.tags.removeAllViews()
                 item.tags.forEach {
                     val textView = TextView(mContext.context)
@@ -84,6 +91,7 @@ class ArticleAdapter(
                 holder.author.text = item.author
                 holder.title.text = TextHelper.replaceStr(item.title)
                 holder.date.text = item.niceDate
+                //加载标签之前把标签区的内容清空，避免重复
                 holder.tags.removeAllViews()
                 item.tags.forEach {
                     val textView = TextView(mContext.context)
@@ -111,10 +119,12 @@ class ArticleAdapter(
     }
 
     override fun getItemViewType(position: Int): Int {
-        if (position == itemCount - 1)
-            return FOOT
         if (position == 0)
             return BANNER
+        if (position == itemCount - 1)
+            return FOOT
+        if (articles[position].isTop)
+            return TOP
         return COMMON
     }
 
@@ -141,15 +151,15 @@ class ArticleAdapter(
         var banner: ViewPager = itemView.findViewById(R.id.banner)
     }
 
-    //协程来实现轮播图
+    //协程实现轮播图
     fun startBanner(i:Int){
-        if (bannerRun){
+        if (bannerRun||bannerAdapter.isLoading){
             return
         }
         var index = i
         GlobalScope.launch (Dispatchers.Main) {
             bannerRun = true
-            while (bannerRun && isBannerAttach) {
+            while (bannerRun && isBannerAttach && !bannerAdapter.isLoading) {
                 banner.currentItem = index++
                 if (index == bannerAdapter.count+1) {
                     banner.setCurrentItem(0, false)

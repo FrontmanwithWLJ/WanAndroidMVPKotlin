@@ -72,7 +72,7 @@ object NetUtils {
                 ) {
                     val gson = Gson()
                     if (response.isSuccessful) {
-                        val json: String? = response.body()?.string()
+                        val json: String? = response.body()?.string()!!.replace("&mdash;","——")
                         netCallBack.onSuccess(gson.fromJson(json, clazz))
                         return
                     }
@@ -111,7 +111,7 @@ object NetUtils {
                 ) {
                     if (response.isSuccessful) {
                         val gson = Gson()
-                        val json = response.body()?.string()
+                        val json = response.body()?.string()!!.replace("&mdash;","——")
                         netCallBack.onSuccess(gson.fromJson(json, clazz))
                         return
                     }
@@ -147,7 +147,7 @@ object NetUtils {
                 ) {
                     if (response.isSuccessful) {
                         val gson = Gson()
-                        val json = response.body()?.string()
+                        val json = response.body()?.string()!!.replace("&mdash;","——")
                         netCallBack.onSuccess(gson.fromJson(json, clazz))
                         return
                     }

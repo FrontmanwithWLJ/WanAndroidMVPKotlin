@@ -4,6 +4,7 @@ import `in`.srain.cube.views.ptr.PtrFrameLayout
 import `in`.srain.cube.views.ptr.PtrHandler
 import `in`.srain.cube.views.ptr.header.StoreHouseHeader
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -13,6 +14,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -24,6 +26,7 @@ import cqupt.sl.wanandroidmk.R
 import cqupt.sl.wanandroidmk.home.adapter.ArticleAdapter
 import cqupt.sl.wanandroidmk.home.adapter.BannerAdapter
 import cqupt.sl.wanandroidmk.home.adapter.HeaderAdapter
+import cqupt.sl.wanandroidmk.widget.pullview.PullCallBack
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -78,7 +81,7 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
     @SuppressLint("ResourceType")
     private fun init() {
         //将toolbar放在所有视图的前面，不被遮挡
-        //toolbar.bringToFront()
+        toolbar.bringToFront()
 
         bannerAdapter =
             BannerAdapter(bannerList)
@@ -104,34 +107,44 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
         homePresenter.getTopArticle()
         homePresenter.getArticle(currentIndex++)
         home_article.setOnTouchListener(this)
-        //banners.requestFocus()
-        //refresh.setBaseHeaderAdapter(HeaderAdapter(context))
-        val header = StoreHouseHeader(context)
-        header.setTextColor(Color.BLACK)
-        header.setPadding(0,50,0,0)
-        header.initWithString("WanAndroid")
-        val textView = TextView(context)
-        textView.text = "WanAndroid"
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            textView.textAlignment = View.TEXT_ALIGNMENT_CENTER
-        }
-        refresh.headerView = textView
-        refresh.setPtrHandler(object : PtrHandler{
-            override fun onRefreshBegin(frame: PtrFrameLayout?) {
-                Toast.makeText(context,"Begin to Refresh",Toast.LENGTH_SHORT).show()
-                frame?.postDelayed({
-                    refresh.refreshComplete()
-                },2000)
-            }
-
-            override fun checkCanDoRefresh(
-                frame: PtrFrameLayout?,
-                content: View?,
-                header: View?
-            ): Boolean {
+        pullView.setPullCallBack(object :PullCallBack{
+            override fun isCanPullDown(): Boolean {
                 return !home_article.canScrollVertically(-1)
             }
+
+            override fun isCanPullUp(): Boolean {
+                return !home_article.canScrollVertically(1)
+            }
+
         })
+        //banners.requestFocus()
+        //refresh.setBaseHeaderAdapter(HeaderAdapter(context))
+//        val header = StoreHouseHeader(context)
+//        header.setTextColor(Color.BLACK)
+//        header.setPadding(0, 50, 0, 0)
+//        header.initWithString("WanAndroid")
+//        val textView = TextView(context)
+//        textView.text = "WanAndroid"
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+//            textView.textAlignment = View.TEXT_ALIGNMENT_CENTER
+//        }
+//        refresh.headerView = textView
+//        refresh.setPtrHandler(object : PtrHandler{
+//            override fun onRefreshBegin(frame: PtrFrameLayout?) {
+//                Toast.makeText(context,"Begin to Refresh",Toast.LENGTH_SHORT).show()
+//                frame?.postDelayed({
+//                    refresh.refreshComplete()
+//                },2000)
+//            }
+//
+//            override fun checkCanDoRefresh(
+//                frame: PtrFrameLayout?,
+//                content: View?,
+//                header: View?
+//            ): Boolean {
+//                return !home_article.canScrollVertically(-1)
+//            }
+//        })
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -141,35 +154,37 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
             return false
         }
         if (event?.action == MotionEvent.ACTION_MOVE) {
-            val offsetY = event.rawY-oldY
+            val offsetY = event.rawY - oldY
             if (offsetY in -2f..2f)
                 return false
             oldY = event.rawY
             //Log.e("SL","offset=${offsetY},toolbar location = ${toolbar.y}")
             //Thread{moveToolbar(offsetY)}.run()
-            Thread{mainActivity.moveTabLayout(offsetY)}.run()
+            Thread { mainActivity.moveTabLayout(offsetY) }.run()
         }
 
         return false
     }
+
     /**
      * @param offsetY 正负代表上下移动tab，数值代表移动距离
      */
-    private fun moveToolbar(offsetY:Float){
+    private fun moveToolbar(offsetY: Float) {
         val oldY = toolbar.y
         val height = toolbar.height.toFloat()
-        if (offsetY<0 && oldY in -height..0f){
-            toolbar.y=when{
-                toolbar.y+offsetY<-height-> -height
-                else -> toolbar.y+offsetY
+        if (offsetY < 0 && oldY in -height..0f) {
+            toolbar.y = when {
+                toolbar.y + offsetY < -height -> -height
+                else -> toolbar.y + offsetY
             }
-        }else if (offsetY>0 && oldY in -height..0f){
-            toolbar.y= when{
-                toolbar.y+offsetY>0f -> 0f
-                else -> toolbar.y+offsetY
+        } else if (offsetY > 0 && oldY in -height..0f) {
+            toolbar.y = when {
+                toolbar.y + offsetY > 0f -> 0f
+                else -> toolbar.y + offsetY
             }
         }
     }
+
     @Synchronized
     override fun onShowBanner(banners: ArrayList<String>) {
         banners.forEach {

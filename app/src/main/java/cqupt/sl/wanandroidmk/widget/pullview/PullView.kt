@@ -1,20 +1,24 @@
 package cqupt.sl.wanandroidmk.widget.pullview
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
+import android.view.View
+import android.view.animation.Animation
 import android.view.animation.Interpolator
 import android.view.animation.TranslateAnimation
 import android.widget.LinearLayout
+import java.util.concurrent.locks.ReentrantLock
 
 class PullView : LinearLayout {
     private val TAG = "PullView"
-    //记录父控件初始位置
-    private val rect: Rect by lazy {
-        Rect(left, top, right, bottom)
-    }
+    //子控件实例
+    private lateinit var contentView: View
+    //记录子控件初始位置
+    private lateinit var rect: Rect
     //记录是否可以拉动
     private var canPullDown = false
     private var canPullUp = false
@@ -37,141 +41,130 @@ class PullView : LinearLayout {
     private var scrollState = NONE
     //记录事件是否交给父控件处理
     private var isParent = false
+    //动画锁
+    private val lock = ReentrantLock()
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
 
+    private fun lockLayout(l:Int, t:Int, r:Int, b:Int){
+        if (lock.isLocked)
+            return
+        contentView.layout(l,t,r,b)
+    }
+
+    override fun onFinishInflate() {
+        //获取子控件和加载位置
+        if (childCount>0){
+            contentView = getChildAt(0)
+        }
+        super.onFinishInflate()
+    }
+
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        //加载位置
-        rect
-        //Log.e(TAG,"$left, $top, $right, $bottom")
+        rect = Rect(contentView.left, contentView.top, contentView.right, contentView.bottom)
         super.onLayout(changed, l, t, r, b)
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
-        when(ev!!.action){
-            MotionEvent.ACTION_DOWN->{
+        when (ev!!.action) {
+            MotionEvent.ACTION_DOWN -> {
+                //Log.e(TAG, "down")
                 startY = ev.y
             }
-            MotionEvent.ACTION_MOVE->{
+            MotionEvent.ACTION_MOVE -> {
+                //Log.e(TAG, "move")
+                if (startY==0f)
+                    startY = ev.y
                 val offset = startY - ev.y
+                startY = ev.y
+                //处理拉动时反向滑动
+                if (isMoved) {
+                    if (offset > 5 && scrollState == DOWN && bottom - offset*scale  >= rect.bottom) {
+                        //Log.e(TAG, "反向滑动1")
+                        lockLayout(contentView.left, (contentView.top - offset * scale).toInt(),
+                            contentView.right, (contentView.bottom - offset * scale).toInt())
+                    } else if (offset < -5 && scrollState == UP && top - offset*scale <= rect.top) {
+                        //Log.e(TAG, "反向滑动")
+                        lockLayout(contentView.left, (contentView.top - offset * scale).toInt(),
+                            contentView.right, (contentView.bottom - offset * scale).toInt())
+                    }
+                }
                 canPullDown = callBack.isCanPullDown()
                 canPullUp = callBack.isCanPullUp()
-                //Log.e(TAG,"offset=$offset,down = $canPullDown,up = $canPullUp")
                 if ((offset < 0 && canPullDown)
                     || (offset > 0 && canPullUp)
-                    || (canPullUp && canPullDown)
-                ) {
+                    || (canPullUp && canPullDown)) {
                     setState(offset)
                     isMoved = true
 //                    Log.e(TAG,"正向滑动")
                     //移动布局
-                    layout(
-                        left, (top - offset * scale).toInt(),
-                        right, (bottom - offset * scale).toInt()
-                    )
+                    lockLayout(contentView.left, (contentView.top - offset * scale).toInt(),
+                        contentView.right, (contentView.bottom - offset * scale).toInt())
+                }
+            }
+            MotionEvent.ACTION_CANCEL,
+            MotionEvent.ACTION_OUTSIDE,
+            MotionEvent.ACTION_UP -> {
+                //Log.e(TAG, "up")
+                if (isMoved) {
+                    // 开启回弹动画
+                    backAnim()
+                    isMoved = false
+                    startY = 0f
                 }
             }
         }
-
         return super.dispatchTouchEvent(ev)
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+        //Log.e(TAG,"拦截 $isMoved")
         if (isMoved){
-            if (downEvent!=null) {
-                //onTouchEvent(downEvent)
-                downEvent = null
+            if (isParent) {
+                isParent = false
+                return onTouchEvent(ev.apply { this!!.action = MotionEvent.ACTION_DOWN })
             }
             return true
         }
         return false
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(ev: MotionEvent?): Boolean {
-        when (ev!!.action) {
-            MotionEvent.ACTION_DOWN -> {
-                Log.e(TAG, "down")
-                downEvent = ev
-                startY = ev.y
-            }
-            MotionEvent.ACTION_MOVE -> {
-                Log.e(TAG, "move")
-                val offset = startY - ev.y
-                startY = ev.y
-                Log.e(TAG, "$offset")
-                //Log.e(TAG, "offset = $offset ,down = ${callBack.isCanPullDown()},up = ${callBack.isCanpullUp()},move = $isMoved")
-                //处理拉动时反向滑动
-//                if (isMoved) {
-//                    if (offset > 5 && scrollState == DOWN && bottom - offset*scale  >= rect.bottom) {
-//                        Log.e(TAG, "反向滑动1")
-//                        layout(
-//                            left, (top - offset * scale).toInt(),
-//                            right, (bottom - offset * scale).toInt()
-//                        )
-//                    } else if (offset < -5 && scrollState == UP && top - offset*scale <= rect.top) {
-//                        Log.e(TAG, "反向滑动")
-//                        layout(
-//                            left, (top - offset*scale).toInt(),
-//                            right, (bottom - offset*scale).toInt()
-//                        )
-//                    }
-//                }
-                canPullDown = callBack.isCanPullDown()
-                canPullUp = callBack.isCanPullUp()
-                if ((offset < 0 && canPullDown)
-                    || (offset > 0 && canPullUp)
-                    || (canPullUp && canPullDown)
-                ) {
-                    setState(offset)
-                    isMoved = true
-//                    Log.e(TAG,"正向滑动")
-                    //移动布局
-                    layout(
-                        left, (top - offset ).toInt(),
-                        right, (bottom - offset ).toInt()
-                    )
-                }
-            }
-            MotionEvent.ACTION_CANCEL,
-            MotionEvent.ACTION_OUTSIDE,
-            MotionEvent.ACTION_UP -> {
-                Log.e(TAG, "up")
-                if (isMoved) {
-                    // 开启动画
-                    val anim = TranslateAnimation(
-                        0F, 0F, top.toFloat(),
-                        rect.top.toFloat()
-                    )
-                    //设置弹回加速度
-                    //anim.setInterpolator { input -> 2*input }
-                    anim.duration = ANIMATIONTIME
-                    startAnimation(anim)
-                    // 设置回到正常的布局位置
-                    layout(
-                        rect.left, rect.top,
-                        rect.right, rect.bottom
-                    )
-                    isMoved = false
-//                    Log.e(TAG,"MOVE = $isMoved")
-                    startY = 0f
-                }
-            }
-        }
         return true
     }
 
+    private fun backAnim(){
+        //Log.e(TAG,"top = ${contentView.top},${rect.top}")
+        val anim = TranslateAnimation(
+            0F, 0F, contentView.top.toFloat(), rect.top.toFloat())
+        //设置弹回加速度
+        //anim.setInterpolator { input ->  }
+        anim.duration = ANIMATIONTIME
+        anim.setAnimationListener(object : Animation.AnimationListener{
+            override fun onAnimationRepeat(animation: Animation?) {
+
+            }
+
+            override fun onAnimationEnd(animation: Animation?) {
+                lock.unlock()
+            }
+
+            override fun onAnimationStart(animation: Animation?) {
+                lock.lock()
+                contentView.layout(rect.left, rect.top,
+                    rect.right, rect.bottom)
+            }
+        })
+        contentView.startAnimation(anim)
+    }
+
     private fun setState(offset: Float){
-        when {
-            offset<0 -> {
-                scrollState = DOWN
-            }
-            offset>0 -> {
-                scrollState = UP
-            }
-            else -> {
-                scrollState = NONE
-            }
+        scrollState = when {
+            offset<0 -> DOWN
+            offset>0 -> UP
+            else -> NONE
         }
     }
 

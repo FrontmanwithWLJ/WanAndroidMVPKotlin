@@ -70,6 +70,11 @@ public class MyScrollView extends ScrollView {
     }
 
     @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev){
+        return isMoved;
+    }
+
+    @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
 
@@ -113,10 +118,8 @@ public class MyScrollView extends ScrollView {
                 isMoved = false;
                 //允许内容滑动
                 this.setOnTouchListener(allowTouch);
-
                 break;
             case MotionEvent.ACTION_MOVE:
-
                 //在移动的过程中， 既没有滚动到可以上拉的程度， 也没有滚动到可以下拉的程度
                 if(!canPullDown && !canPullUp) {
                     startY = ev.getY();
@@ -135,7 +138,6 @@ public class MyScrollView extends ScrollView {
                                 || (canPullUp && deltaY< 0) //可以上拉， 并且手指向上移动
                                 || (canPullUp && canPullDown)
                                 || isMoved; //既可以上拉也可以下拉（这种情况出现在ScrollView包裹的控件比ScrollView还小）
-
                 if(shouldMove){
                     //计算偏移量
                     int offset = (int)(deltaY * MOVE_FACTOR);

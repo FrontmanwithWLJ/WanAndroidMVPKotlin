@@ -1,12 +1,6 @@
 package cqupt.sl.wanandroidmk.home
 
-import `in`.srain.cube.views.ptr.PtrFrameLayout
-import `in`.srain.cube.views.ptr.PtrHandler
-import `in`.srain.cube.views.ptr.header.StoreHouseHeader
 import android.annotation.SuppressLint
-import android.content.Context
-import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
@@ -14,8 +8,6 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ScrollView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -25,8 +17,6 @@ import cqupt.sl.wanandroidmk.MainActivity
 import cqupt.sl.wanandroidmk.R
 import cqupt.sl.wanandroidmk.home.adapter.ArticleAdapter
 import cqupt.sl.wanandroidmk.home.adapter.BannerAdapter
-import cqupt.sl.wanandroidmk.home.adapter.HeaderAdapter
-import cqupt.sl.wanandroidmk.widget.pullview.PullCallBack
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -41,7 +31,7 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
     private val articleList = ArrayList<ArticleItem>()
     private lateinit var articleAdapter: ArticleAdapter
     //当前文章加载到哪一页
-    private var currentIndex = 0
+    private var currentIndex = -1
     //记录用户触摸位置
     private var oldY: Float = 0f
     private var homePresenter = HomePresenter(this)
@@ -60,6 +50,8 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
                     articleAdapter.startBanner(0)
                 }
             }
+            if (pull.isRefreshing)
+                pull.isRefreshing = false
         }
     }
 
@@ -82,7 +74,7 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
     private fun init() {
         //将toolbar放在所有视图的前面，不被遮挡
         toolbar.bringToFront()
-
+        //轮播图
         bannerAdapter =
             BannerAdapter(bannerList)
         val linearLayoutManager = LinearLayoutManager(context)
@@ -94,57 +86,24 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
                 ?.let { divider.setDrawable(it) }
         }
         home_article.addItemDecoration(divider)
-
+        //文章
         articleAdapter = ArticleAdapter(
             articleList,
             this,
             bannerAdapter
         )
         home_article.adapter = articleAdapter
-        //var listView = ListView(this as Context)
-        //首次加载传入-1加载置顶文章加载一页普通文章
-        homePresenter.getBanner()
-        homePresenter.getTopArticle()
-        homePresenter.getArticle(currentIndex++)
         home_article.setOnTouchListener(this)
-        pullView.setPullCallBack(object :PullCallBack{
-            override fun isCanPullDown(): Boolean {
-                return !home_article.canScrollVertically(-1)
+        //下拉控件
+        pull.setOnRefreshListener {
+            if(pull.isRefreshing){
+                refresh()
             }
+        }
+        //自动加载
+        pull.isRefreshing = true
+        refresh()
 
-            override fun isCanPullUp(): Boolean {
-                return !home_article.canScrollVertically(1)
-            }
-
-        })
-        //banners.requestFocus()
-        //refresh.setBaseHeaderAdapter(HeaderAdapter(context))
-//        val header = StoreHouseHeader(context)
-//        header.setTextColor(Color.BLACK)
-//        header.setPadding(0, 50, 0, 0)
-//        header.initWithString("WanAndroid")
-//        val textView = TextView(context)
-//        textView.text = "WanAndroid"
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-//            textView.textAlignment = View.TEXT_ALIGNMENT_CENTER
-//        }
-//        refresh.headerView = textView
-//        refresh.setPtrHandler(object : PtrHandler{
-//            override fun onRefreshBegin(frame: PtrFrameLayout?) {
-//                Toast.makeText(context,"Begin to Refresh",Toast.LENGTH_SHORT).show()
-//                frame?.postDelayed({
-//                    refresh.refreshComplete()
-//                },2000)
-//            }
-//
-//            override fun checkCanDoRefresh(
-//                frame: PtrFrameLayout?,
-//                content: View?,
-//                header: View?
-//            ): Boolean {
-//                return !home_article.canScrollVertically(-1)
-//            }
-//        })
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -158,12 +117,21 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
             if (offsetY in -2f..2f)
                 return false
             oldY = event.rawY
-            //Log.e("SL","offset=${offsetY},toolbar location = ${toolbar.y}")
-            //Thread{moveToolbar(offsetY)}.run()
             Thread { mainActivity.moveTabLayout(offsetY) }.run()
         }
 
         return false
+    }
+
+    //清空文章和轮播图信息重新加载
+    private fun refresh(){
+        currentIndex = -1
+        bannerList.clear()
+        articleList.clear()
+
+        homePresenter.getBanner()
+        homePresenter.getTopArticle()
+        homePresenter.getArticle(currentIndex++)
     }
 
     /**

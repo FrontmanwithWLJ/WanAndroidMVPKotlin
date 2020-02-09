@@ -1,5 +1,6 @@
 package cqupt.sl.wanandroidmk.home.adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -34,7 +35,7 @@ class ArticleAdapter(
     private var bannerRun = false
     //banner是否离开了页面
     private var isBannerAttach = false
-    private lateinit var banner:ViewPager
+    private lateinit var banner: ViewPager
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         //mContext.inflate()方式加载会导致item不占满屏幕
@@ -51,9 +52,9 @@ class ArticleAdapter(
                     .inflate(R.layout.home_article_item, parent, false)
                 ViewHolder(view)
             }
-            TOP ->{
+            TOP -> {
                 val view = LayoutInflater.from(mContext.context)
-                    .inflate(R.layout.home_article_item,parent,false)
+                    .inflate(R.layout.home_article_item, parent, false)
                 TopViewHolder(
                     view
                 )
@@ -76,12 +77,13 @@ class ArticleAdapter(
         val item = articles[position]
         when (holder) {
             is BannerViewHolder -> {
-                    banner = holder.banner
-                    banner.adapter = bannerAdapter
-                    //禁止滑动
-                    banner.setOnTouchListener { _, _ -> false }
+                banner = holder.banner
+                banner.adapter = bannerAdapter
+                banner.setOnTouchListener { v, event ->
+                    false
+                }
             }
-            is TopViewHolder ->{
+            is TopViewHolder -> {
                 holder.author.text = item.author
                 holder.title.text = TextHelper.replaceStr(item.title)
                 holder.date.text = item.niceDate
@@ -114,13 +116,13 @@ class ArticleAdapter(
     }
 
     override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {
-        if (holder is BannerViewHolder){
+        if (holder is BannerViewHolder) {
             isBannerAttach = true
         }
     }
 
     override fun onViewDetachedFromWindow(holder: RecyclerView.ViewHolder) {
-        if (holder is BannerViewHolder){
+        if (holder is BannerViewHolder) {
             isBannerAttach = false
         }
     }
@@ -159,16 +161,16 @@ class ArticleAdapter(
     }
 
     //协程实现轮播图
-    fun startBanner(i:Int){
-        if (bannerRun||bannerAdapter.isLoading){
+    fun startBanner(i: Int) {
+        if (bannerRun || bannerAdapter.isLoading) {
             return
         }
         var index = i
-        GlobalScope.launch (Dispatchers.Main) {
+        GlobalScope.launch(Dispatchers.Main) {
             bannerRun = true
             while (bannerRun && isBannerAttach && !bannerAdapter.isLoading) {
                 banner.currentItem = index++
-                if (index == bannerAdapter.count+1) {
+                if (index == bannerAdapter.count + 1) {
                     banner.setCurrentItem(0, false)
                     index = 1
                 }

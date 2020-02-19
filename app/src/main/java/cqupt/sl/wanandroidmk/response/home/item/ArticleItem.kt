@@ -1,4 +1,4 @@
-package cqupt.sl.wanandroidmk.home
+package cqupt.sl.wanandroidmk.response.home.item
 
 /**
  * {"apkLink":"","audit":1,"author":"鸿洋","chapterId":408,"chapterName":"鸿洋","collect":false,"courseId":13,"desc":"","envelopePic":"","fresh":false,"id":11058,"link":"https://mp.weixin.qq.com/s/gzHjLJsAePgI6PrasYuU9g","niceDate":"2019-12-18 00:00","niceShareDate":"2天前","origin":"","prefix":"","projectLink":"","publishTime":1576598400000,"selfVisible":0,"shareDate":1576759884000,"shareUser":"","superChapterId":408,"superChapterName":"公众号","tags":[{"name":"公众号","url":"/wxarticle/list/408/1"}],"title":"Android 一些值得你深入的细节 | Window 篇","type":0,"userId":-1,"visible":1,"zan":0}

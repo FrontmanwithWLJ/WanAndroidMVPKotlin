@@ -1,6 +1,6 @@
-package cqupt.sl.wanandroidmk.response.homearticle
+package cqupt.sl.wanandroidmk.response.home
 
-import cqupt.sl.wanandroidmk.home.ArticleItem
+import cqupt.sl.wanandroidmk.response.home.item.ArticleItem
 
 data class TopArticle(
     val `data`: List<ArticleItem>,

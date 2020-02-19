@@ -1,9 +1,11 @@
 package cqupt.sl.wanandroidmk.home
 
 import android.annotation.SuppressLint
+import android.graphics.Rect
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -13,10 +15,15 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.daimajia.swipe.SwipeLayout
 import cqupt.sl.wanandroidmk.MainActivity
 import cqupt.sl.wanandroidmk.R
 import cqupt.sl.wanandroidmk.home.adapter.ArticleAdapter
 import cqupt.sl.wanandroidmk.home.adapter.BannerAdapter
+import cqupt.sl.wanandroidmk.response.home.item.ArticleItem
+import cqupt.sl.wanandroidmk.response.home.item.BannerItem
+import cqupt.sl.wanandroidmk.widget.pullrefresh.CanScroll
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -25,16 +32,18 @@ import kotlinx.coroutines.launch
 class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeContract.View,
     View.OnTouchListener {
     //轮播图
-    private val bannerList = ArrayList<String>()
+    private val bannerList = ArrayList<BannerItem>()
     private lateinit var bannerAdapter: BannerAdapter
     //文章列表
-    private val articleList = ArrayList<ArticleItem>()
+    private val articleList = ArrayList<ArticleItem?>()
     private lateinit var articleAdapter: ArticleAdapter
     //当前文章加载到哪一页
     private var currentIndex = -1
     //记录用户触摸位置
     private var oldY: Float = 0f
-    private var homePresenter = HomePresenter(this)
+    //记录当前tab的位置
+    private var tabCurrentPosition = 0f
+    private val homePresenter by lazy { HomePresenter(context!!,this) }
     private val handler = @SuppressLint("HandlerLeak")
     object : Handler() {
         override fun handleMessage(msg: Message) {
@@ -42,16 +51,13 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
             when (msg.what) {
                 1 -> {
                     bannerAdapter.notifyDataSetChanged()
-                    //开启轮播
-                    //articleAdapter.startBanner(0)
                 }
                 2 -> {
                     articleAdapter.notifyDataSetChanged()
-                    articleAdapter.startBanner(0)
                 }
             }
-            if (pull.isRefreshing)
-                pull.isRefreshing = false
+            if (down_refresh.isRefreshing)
+                down_refresh.isRefreshing = false
         }
     }
 
@@ -74,6 +80,7 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
     private fun init() {
         //将toolbar放在所有视图的前面，不被遮挡
         toolbar.bringToFront()
+
         //轮播图
         bannerAdapter =
             BannerAdapter(bannerList)
@@ -86,6 +93,7 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
                 ?.let { divider.setDrawable(it) }
         }
         home_article.addItemDecoration(divider)
+
         //文章
         articleAdapter = ArticleAdapter(
             articleList,
@@ -94,16 +102,32 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
         )
         home_article.adapter = articleAdapter
         home_article.setOnTouchListener(this)
+
+        //上拉加载
+        var scrollState = RecyclerView.SCROLL_STATE_SETTLING
+        home_article.addOnScrollListener(object :RecyclerView.OnScrollListener(){
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                scrollState = newState
+            }
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                //Log.e("SL","scrollstate = $scrollState,position = ${linearLayoutManager.findLastVisibleItemPosition()},complete position = ${linearLayoutManager.findLastCompletelyVisibleItemPosition()},itemcount = ${articleAdapter.itemCount}")
+                if (scrollState == RecyclerView.SCROLL_STATE_SETTLING && linearLayoutManager.findLastVisibleItemPosition() == articleAdapter.itemCount - 1) {
+                    homePresenter.getArticle(++currentIndex)
+                }
+            }
+        })
+
         //下拉控件
-        pull.setOnRefreshListener {
-            if(pull.isRefreshing){
+        down_refresh.setOnRefreshListener {
+            if(down_refresh.isRefreshing){
                 refresh()
             }
         }
         //自动加载
-        pull.isRefreshing = true
+        down_refresh.isRefreshing = true
         refresh()
-
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -117,9 +141,8 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
             if (offsetY in -2f..2f)
                 return false
             oldY = event.rawY
-            Thread { mainActivity.moveTabLayout(offsetY) }.run()
+            mainActivity.moveTabLayout(offsetY)
         }
-
         return false
     }
 
@@ -128,10 +151,12 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
         currentIndex = -1
         bannerList.clear()
         articleList.clear()
+        //占位,banner
+        articleList.add(null)
 
         homePresenter.getBanner()
         homePresenter.getTopArticle()
-        homePresenter.getArticle(currentIndex++)
+        homePresenter.getArticle(++currentIndex)
     }
 
     /**
@@ -154,11 +179,10 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
     }
 
     @Synchronized
-    override fun onShowBanner(banners: ArrayList<String>) {
+    override fun onShowBanner(banners: ArrayList<BannerItem>) {
         banners.forEach {
             bannerList.add(it)
         }
-        bannerList.add(banners[0])
         handler.sendMessage(Message.obtain().apply { what = 1 })
     }
 
@@ -167,7 +191,6 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
         article.forEach {
             articleList.add(it)
         }
-        articleList.add(article[0])
         handler.sendMessage(Message.obtain().apply { what = 2 })
     }
 

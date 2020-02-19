@@ -1,25 +1,20 @@
 package cqupt.sl.wanandroidmk.home.adapter
 
-import android.util.Log
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.view.marginTop
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import cqupt.sl.wanandroidmk.R
-import cqupt.sl.wanandroidmk.home.ArticleItem
+import cqupt.sl.wanandroidmk.response.home.item.ArticleItem
 import cqupt.sl.wanandroidmk.home.FragmentHome
 import cqupt.sl.wanandroidmk.texthelper.TextHelper
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class ArticleAdapter(
-    private val articles: ArrayList<ArticleItem>,
+    private val articles: ArrayList<ArticleItem?>,
     private val mContext: FragmentHome,
     private val bannerAdapter: BannerAdapter
 ) :
@@ -31,8 +26,6 @@ class ArticleAdapter(
     private val TOP = 3
     private var tips = "正在加载更多数据..."
 
-    //轮播线程是否开启
-    private var bannerRun = false
     //banner是否离开了页面
     private var isBannerAttach = false
     private lateinit var banner: ViewPager
@@ -73,18 +66,18 @@ class ArticleAdapter(
         return articles.size
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val item = articles[position]
         when (holder) {
             is BannerViewHolder -> {
                 banner = holder.banner
                 banner.adapter = bannerAdapter
-                banner.setOnTouchListener { v, event ->
-                    false
-                }
+                bannerAdapter.setBannerInstance(banner)
+                banner.setOnTouchListener { _, _ -> false }
             }
             is TopViewHolder -> {
-                holder.author.text = item.author
+                holder.author.text = item!!.author
                 holder.title.text = TextHelper.replaceStr(item.title)
                 holder.date.text = item.niceDate
                 holder.top.visibility = View.VISIBLE
@@ -97,7 +90,7 @@ class ArticleAdapter(
                 }
             }
             is ViewHolder -> {
-                holder.author.text = item.author
+                holder.author.text = item!!.author
                 holder.title.text = TextHelper.replaceStr(item.title)
                 holder.date.text = item.niceDate
                 //加载标签之前把标签区的内容清空，避免重复
@@ -130,9 +123,9 @@ class ArticleAdapter(
     override fun getItemViewType(position: Int): Int {
         if (position == 0)
             return BANNER
-        if (position == itemCount - 1)
-            return FOOT
-        if (articles[position].isTop)
+//        if (position == itemCount - 1)
+//            return FOOT
+        if (articles[position]!!.isTop)
             return TOP
         return COMMON
     }
@@ -159,26 +152,4 @@ class ArticleAdapter(
     class BannerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var banner: ViewPager = itemView.findViewById(R.id.banner)
     }
-
-    //协程实现轮播图
-    fun startBanner(i: Int) {
-        if (bannerRun || bannerAdapter.isLoading) {
-            return
-        }
-        var index = i
-        GlobalScope.launch(Dispatchers.Main) {
-            bannerRun = true
-            while (bannerRun && isBannerAttach && !bannerAdapter.isLoading) {
-                banner.currentItem = index++
-                if (index == bannerAdapter.count + 1) {
-                    banner.setCurrentItem(0, false)
-                    index = 1
-                }
-                delay(3000)
-            }
-        }
-        bannerRun = false
-    }
-
-
 }

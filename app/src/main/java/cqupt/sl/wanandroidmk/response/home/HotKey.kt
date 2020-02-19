@@ -1,4 +1,4 @@
-package cqupt.sl.wanandroidmk.response.homearticle
+package cqupt.sl.wanandroidmk.response.home
 
 data class HotKey(
     val `data`: List<Data>,

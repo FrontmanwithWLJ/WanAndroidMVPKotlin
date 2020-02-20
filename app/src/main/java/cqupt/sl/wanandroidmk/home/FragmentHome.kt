@@ -25,6 +25,7 @@ import cqupt.sl.wanandroidmk.response.home.item.ArticleItem
 import cqupt.sl.wanandroidmk.response.home.item.BannerItem
 import cqupt.sl.wanandroidmk.widget.pullrefresh.CanScroll
 import kotlinx.android.synthetic.main.fragment_home.*
+import kotlinx.android.synthetic.main.home_banner.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -51,6 +52,7 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
             when (msg.what) {
                 1 -> {
                     bannerAdapter.notifyDataSetChanged()
+                    banner.startBanner()
                 }
                 2 -> {
                     articleAdapter.notifyDataSetChanged()
@@ -70,10 +72,14 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
         return inflater.inflate(R.layout.fragment_home, null)
     }
 
-    override fun onStart() {
-        super.onStart()
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
         init()
         homePresenter.start()
+    }
+
+    override fun onStart() {
+        super.onStart()
     }
 
     @SuppressLint("ResourceType")
@@ -83,7 +89,7 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
 
         //轮播图
         bannerAdapter =
-            BannerAdapter(bannerList)
+            BannerAdapter(context!!,bannerList)
         val linearLayoutManager = LinearLayoutManager(context)
         home_article.layoutManager = linearLayoutManager
         //设置分割线
@@ -184,6 +190,14 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
             bannerList.add(it)
         }
         handler.sendMessage(Message.obtain().apply { what = 1 })
+    }
+
+    @Synchronized
+    override fun onShowTopArticle(article: ArrayList<ArticleItem>) {
+        for (i in article.size-1 downTo 0){
+            articleList.add(1,article[i])
+        }
+        handler.sendMessage(Message.obtain().apply { what = 2 })
     }
 
     @Synchronized

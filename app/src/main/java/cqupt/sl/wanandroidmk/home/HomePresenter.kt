@@ -47,7 +47,7 @@ class HomePresenter(val context: Context,private val iView: HomeContract.View) :
                 val arrayList = response.data as ArrayList<ArticleItem>
                 //arrayList.add(0, arrayList[0])
                 if (iView.isActive())
-                    iView.onShowArticle(arrayList)
+                    iView.onShowTopArticle(arrayList)
             }
 
             override fun onFailure(errorBody: ResponseBody?) {

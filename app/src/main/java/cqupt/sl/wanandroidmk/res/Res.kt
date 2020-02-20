@@ -29,4 +29,7 @@ object Res {
     var HOME_TOP_ARTICLE = "home_top_article.json"
     var HOME_BANNER = "home_banner_"
     var HOME_HOT_KEY = "home_hot_key.json"
+
+    //轮播间隔时间
+    const val intervalTime = 3000L
 }

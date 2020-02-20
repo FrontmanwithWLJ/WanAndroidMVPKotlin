@@ -19,6 +19,7 @@ interface HomeContract {
     interface View : BaseView<Presenter>{
         //这里的更新操作，
         fun onShowBanner(banners: ArrayList<BannerItem>)
+        fun onShowTopArticle(article: ArrayList<ArticleItem>)
         fun onShowArticle(article: ArrayList<ArticleItem>)
         fun onShowError(msg:String)
     }

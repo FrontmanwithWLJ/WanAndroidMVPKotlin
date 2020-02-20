@@ -1,12 +1,12 @@
 package cqupt.sl.wanandroidmk.home.adapter
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.viewpager.widget.PagerAdapter
-import androidx.viewpager.widget.ViewPager
+import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -14,18 +14,19 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import cqupt.sl.wanandroidmk.res.Res
 import cqupt.sl.wanandroidmk.response.home.item.BannerItem
+import cqupt.sl.wanandroidmk.web.WebActivity
+import cqupt.sl.wanandroidmk.widget.banner.BannerAdapter
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileOutputStream
 
-class BannerAdapter(private val pictureList: ArrayList<BannerItem>) : PagerAdapter() {
+class BannerAdapter(private val mContext:Context,private val pictureList: ArrayList<BannerItem>) : BannerAdapter<BannerItem>(pictureList) {
     private val TAG = "BannerPicture"
-    private var banner:ViewPager?=null
-    private var isRunning = false
 
     override fun instantiateItem(container: ViewGroup, position: Int): Any {
+        val item = pictureList[position]
         val image = ImageView(container.context)
-        val file = loadPic(pictureList[position].id)
+        val file = loadPic(item.id)
         if (file!=null){
             //加载本地缓存
             Glide.with(container.context)
@@ -34,7 +35,7 @@ class BannerAdapter(private val pictureList: ArrayList<BannerItem>) : PagerAdapt
         }else {
             Glide.with(container.context)
                 .asBitmap()
-                .load(pictureList[position].imagePath)
+                .load(item.imagePath)
                 .addListener(object : RequestListener<Bitmap> {
                     override fun onLoadFailed(
                         e: GlideException?,
@@ -61,6 +62,9 @@ class BannerAdapter(private val pictureList: ArrayList<BannerItem>) : PagerAdapt
         }
         container.addView(image)
         //image.setOnClickListener {  }
+        image.setOnClickListener{
+            WebActivity.goToWeb(mContext,item.url,false)
+        }
         return image
     }
 
@@ -74,34 +78,6 @@ class BannerAdapter(private val pictureList: ArrayList<BannerItem>) : PagerAdapt
 
     override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
         container.removeView(`object` as View?)
-    }
-
-    override fun notifyDataSetChanged() {
-        pictureList.add(pictureList[0])
-        super.notifyDataSetChanged()
-        startBanner()
-    }
-
-    private fun startBanner() {
-        if (isRunning||count==0)
-            return
-        isRunning = true
-        GlobalScope.launch(Dispatchers.Main) {
-            delay(3000)
-            //3秒一次更换
-            while (isRunning) {
-                banner!!.currentItem ++
-                delay(3000)
-                if (banner!!.currentItem == count-1){
-                    banner!!.setCurrentItem(0,false)
-                }
-            }
-        }
-    }
-
-
-    fun setBannerInstance(banner:ViewPager){
-        this.banner = banner
     }
 
     private fun savePic(position: Int, picture: Bitmap) {

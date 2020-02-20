@@ -7,11 +7,13 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager.widget.ViewPager
 import cqupt.sl.wanandroidmk.R
 import cqupt.sl.wanandroidmk.response.home.item.ArticleItem
 import cqupt.sl.wanandroidmk.home.FragmentHome
+import cqupt.sl.wanandroidmk.res.Res
 import cqupt.sl.wanandroidmk.texthelper.TextHelper
+import cqupt.sl.wanandroidmk.web.WebActivity
+import cqupt.sl.wanandroidmk.widget.banner.Banner
 
 class ArticleAdapter(
     private val articles: ArrayList<ArticleItem?>,
@@ -22,13 +24,11 @@ class ArticleAdapter(
 
     private val BANNER = 0
     private val COMMON = 1
-    private val FOOT = 2
-    private val TOP = 3
+    private val TOP = 2
     private var tips = "正在加载更多数据..."
 
     //banner是否离开了页面
     private var isBannerAttach = false
-    private lateinit var banner: ViewPager
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         //mContext.inflate()方式加载会导致item不占满屏幕
@@ -71,10 +71,9 @@ class ArticleAdapter(
         val item = articles[position]
         when (holder) {
             is BannerViewHolder -> {
-                banner = holder.banner
-                banner.adapter = bannerAdapter
-                bannerAdapter.setBannerInstance(banner)
-                banner.setOnTouchListener { _, _ -> false }
+                holder.banner.adapter = bannerAdapter
+                holder.banner.setIntervalTime(Res.intervalTime)
+                holder.banner.setOnTouchListener { _, _ -> false }
             }
             is TopViewHolder -> {
                 holder.author.text = item!!.author
@@ -88,6 +87,9 @@ class ArticleAdapter(
                     textView.setBackgroundResource(R.drawable.home_tag_item)
                     holder.tags.addView(textView)
                 }
+                (holder.title.parent as ViewGroup).setOnClickListener {
+                    WebActivity.goToWeb(mContext.context!!,item.link,item.collect)
+                }
             }
             is ViewHolder -> {
                 holder.author.text = item!!.author
@@ -100,6 +102,9 @@ class ArticleAdapter(
                     textView.text = it.name
                     textView.setBackgroundResource(R.drawable.home_tag_item)
                     holder.tags.addView(textView)
+                }
+                (holder.title.parent as ViewGroup).setOnClickListener {
+                    WebActivity.goToWeb(mContext.context!!,item.link,item.collect)
                 }
             }
             is FootViewHolder -> {
@@ -150,6 +155,6 @@ class ArticleAdapter(
     }
 
     class BannerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var banner: ViewPager = itemView.findViewById(R.id.banner)
+        var banner: Banner = itemView.findViewById(R.id.banner)
     }
 }

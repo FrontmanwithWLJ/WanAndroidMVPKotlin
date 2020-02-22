@@ -1,8 +1,8 @@
-package cqupt.sl.wanandroidmk
+package cqupt.sl.wanandroidmk.activity.main
 
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import cqupt.sl.wanandroidmk.home.FragmentHome
+import cqupt.sl.wanandroidmk.activity.main.fragment.home.FragmentHome
 
 class ViewPagerAdapter(private val fragment: MainActivity, private val count: Int) : FragmentStateAdapter(fragment) {
 

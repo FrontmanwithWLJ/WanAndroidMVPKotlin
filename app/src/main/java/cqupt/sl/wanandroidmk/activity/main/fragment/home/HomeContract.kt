@@ -1,4 +1,4 @@
-package cqupt.sl.wanandroidmk.home
+package cqupt.sl.wanandroidmk.activity.main.fragment.home
 
 import cqupt.sl.wanandroidmk.base.BasePresenter
 import cqupt.sl.wanandroidmk.base.BaseView

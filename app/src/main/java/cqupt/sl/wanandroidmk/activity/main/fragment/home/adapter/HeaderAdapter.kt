@@ -1,4 +1,4 @@
-package cqupt.sl.wanandroidmk.home.adapter
+package cqupt.sl.wanandroidmk.activity.main.fragment.home.adapter
 
 import android.content.Context
 import android.os.Build

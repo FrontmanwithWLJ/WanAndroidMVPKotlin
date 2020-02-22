@@ -1,4 +1,4 @@
-package cqupt.sl.wanandroidmk.requestpermission
+package cqupt.sl.wanandroidmk.permission
 
 import android.annotation.TargetApi
 import android.app.Activity

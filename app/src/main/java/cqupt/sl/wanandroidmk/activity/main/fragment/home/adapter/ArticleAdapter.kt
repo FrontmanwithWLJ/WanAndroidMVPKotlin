@@ -1,4 +1,4 @@
-package cqupt.sl.wanandroidmk.home.adapter
+package cqupt.sl.wanandroidmk.activity.main.fragment.home.adapter
 
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
@@ -9,10 +9,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import cqupt.sl.wanandroidmk.R
 import cqupt.sl.wanandroidmk.response.home.item.ArticleItem
-import cqupt.sl.wanandroidmk.home.FragmentHome
+import cqupt.sl.wanandroidmk.activity.main.fragment.home.FragmentHome
 import cqupt.sl.wanandroidmk.res.Res
 import cqupt.sl.wanandroidmk.texthelper.TextHelper
-import cqupt.sl.wanandroidmk.web.WebActivity
+import cqupt.sl.wanandroidmk.activity.web.WebActivity
 import cqupt.sl.wanandroidmk.widget.banner.Banner
 
 class ArticleAdapter(

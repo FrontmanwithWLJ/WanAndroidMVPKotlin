@@ -1,4 +1,4 @@
-package cqupt.sl.wanandroidmk.home
+package cqupt.sl.wanandroidmk.activity.main.fragment.home
 
 import android.content.Context
 import android.util.Log

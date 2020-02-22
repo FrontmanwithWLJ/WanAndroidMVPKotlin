@@ -1,8 +1,6 @@
-package cqupt.sl.wanandroidmk.home
+package cqupt.sl.wanandroidmk.activity.main.fragment.home
 
 import android.content.Context
-import android.util.Log
-import com.google.gson.Gson
 import cqupt.sl.wanandroidmk.response.home.item.ArticleItem
 import cqupt.sl.wanandroidmk.response.home.item.BannerItem
 import cqupt.sl.wanandroidmk.net.callback.NetCallBack

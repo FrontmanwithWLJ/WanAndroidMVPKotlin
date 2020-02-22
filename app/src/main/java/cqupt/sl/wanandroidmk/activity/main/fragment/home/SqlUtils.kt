@@ -1,4 +1,4 @@
-package cqupt.sl.wanandroidmk.home
+package cqupt.sl.wanandroidmk.activity.main.fragment.home
 
 object SqlUtils {
     private val TAG = "HomeSQL"

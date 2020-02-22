@@ -15,35 +15,34 @@
         android:paddingRight="10dp"
         tools:ignore="NotSibling">
 
-        <LinearLayout
+        <EditText
+            android:id="@+id/home_search"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="30dp"
             android:layout_marginTop="5dp"
-            android:background="@drawable/search_edit_shape">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="start|center"
-                android:paddingStart="10dp"
-                android:paddingLeft="10dp"
-                android:text="@string/search_text"
-                android:textAlignment="textStart"
-                tools:ignore="RtlSymmetry" />
-        </LinearLayout>
+            android:background="@drawable/search_edit_shape"
+            android:gravity="start|center"
+            android:textSize="15sp"
+            android:hint="@string/search_text"
+            android:transitionName="@string/search_edit_transition_name"
+            android:paddingStart="10dp"
+            android:paddingLeft="10dp"
+            android:textAlignment="textStart"
+            tools:ignore="RtlSymmetry"
+            tools:targetApi="lollipop" />
 
     </androidx.appcompat.widget.Toolbar>
 
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/down_refresh"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/toolbar">
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/down_refresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/toolbar">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/home_article"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/home_article"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 </RelativeLayout>

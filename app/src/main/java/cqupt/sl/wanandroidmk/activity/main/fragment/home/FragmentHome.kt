@@ -1,7 +1,6 @@
-package cqupt.sl.wanandroidmk.home
+package cqupt.sl.wanandroidmk.activity.main.fragment.home
 
 import android.annotation.SuppressLint
-import android.graphics.Rect
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
@@ -16,14 +15,13 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.daimajia.swipe.SwipeLayout
-import cqupt.sl.wanandroidmk.MainActivity
+import cqupt.sl.wanandroidmk.activity.main.MainActivity
 import cqupt.sl.wanandroidmk.R
-import cqupt.sl.wanandroidmk.home.adapter.ArticleAdapter
-import cqupt.sl.wanandroidmk.home.adapter.BannerAdapter
+import cqupt.sl.wanandroidmk.activity.main.fragment.home.adapter.ArticleAdapter
+import cqupt.sl.wanandroidmk.activity.main.fragment.home.adapter.BannerAdapter
+import cqupt.sl.wanandroidmk.activity.search.SearchActivity
 import cqupt.sl.wanandroidmk.response.home.item.ArticleItem
 import cqupt.sl.wanandroidmk.response.home.item.BannerItem
-import cqupt.sl.wanandroidmk.widget.pullrefresh.CanScroll
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.android.synthetic.main.home_banner.*
 import kotlinx.coroutines.Dispatchers
@@ -48,10 +46,10 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
     private val handler = @SuppressLint("HandlerLeak")
     object : Handler() {
         override fun handleMessage(msg: Message) {
-            super.handleMessage(msg)
             when (msg.what) {
                 1 -> {
                     bannerAdapter.notifyDataSetChanged()
+                    articleAdapter.notifyDataSetChanged()
                     banner.startBanner()
                 }
                 2 -> {
@@ -77,16 +75,20 @@ class FragmentHome(private val mainActivity: MainActivity) : Fragment(), HomeCon
         init()
         homePresenter.start()
     }
-
     override fun onStart() {
+        //将toolbar放在所有视图的前面，不被遮挡
+        toolbar.bringToFront()
         super.onStart()
     }
 
     @SuppressLint("ResourceType")
     private fun init() {
-        //将toolbar放在所有视图的前面，不被遮挡
-        toolbar.bringToFront()
-
+        //搜索框
+        home_search.setOnTouchListener { _, event ->
+            if (event.action == MotionEvent.ACTION_UP)
+            SearchActivity.goToSearch(mainActivity,home_search)
+            true
+        }
         //轮播图
         bannerAdapter =
             BannerAdapter(context!!,bannerList)

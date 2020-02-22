@@ -1,5 +1,6 @@
 package cqupt.sl.wanandroidmk.net.request
 
+import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import cqupt.sl.wanandroidmk.net.callback.NetCallBack
@@ -18,15 +19,14 @@ import retrofit2.converter.gson.GsonConverterFactory
  * 网络工具类 get post download
  */
 object NetUtils {
-
-    private lateinit var baseUrl: String
+    private var baseUrl: String = "https://www.wanandroid.com"
     private var successCode: Int = 0
-    private val retrofit: Retrofit by lazy {
-        //去除转义斜杠
-        val gson = GsonBuilder().disableHtmlEscaping().create()
+    private val retrofit:Retrofit by lazy {
+        Log.e("SL","url= $baseUrl")
         Retrofit.Builder()
             .baseUrl(baseUrl)
-            .addConverterFactory(GsonConverterFactory.create(gson))
+            //去除转义斜杠
+            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().disableHtmlEscaping().create()))
             .build()
     }
 
@@ -66,13 +66,14 @@ object NetUtils {
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                     netCallBack.onFailure(null)
                 }
+
                 override fun onResponse(
                     call: Call<ResponseBody>,
                     response: Response<ResponseBody>
                 ) {
                     val gson = Gson()
                     if (response.isSuccessful) {
-                        val json: String? = response.body()?.string()!!.replace("&mdash;","——")
+                        val json: String? = response.body()?.string()!!.replace("&mdash;", "——")
                         netCallBack.onSuccess(gson.fromJson(json, clazz))
                         return
                     }
@@ -111,7 +112,7 @@ object NetUtils {
                 ) {
                     if (response.isSuccessful) {
                         val gson = Gson()
-                        val json = response.body()?.string()!!.replace("&mdash;","——")
+                        val json = response.body()?.string()!!.replace("&mdash;", "——")
                         netCallBack.onSuccess(gson.fromJson(json, clazz))
                         return
                     }
@@ -147,7 +148,7 @@ object NetUtils {
                 ) {
                     if (response.isSuccessful) {
                         val gson = Gson()
-                        val json = response.body()?.string()!!.replace("&mdash;","——")
+                        val json = response.body()?.string()!!.replace("&mdash;", "——")
                         netCallBack.onSuccess(gson.fromJson(json, clazz))
                         return
                     }

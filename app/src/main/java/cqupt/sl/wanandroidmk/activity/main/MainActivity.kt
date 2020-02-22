@@ -1,7 +1,8 @@
-package cqupt.sl.wanandroidmk
+package cqupt.sl.wanandroidmk.activity.main
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -15,11 +16,19 @@ import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.net.Uri
 import android.provider.Settings
 import android.util.Log
+import android.view.KeyEvent
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.multidex.MultiDex
+import cqupt.sl.wanandroidmk.R
 
-import cqupt.sl.wanandroidmk.requestpermission.EasyRequest
+import cqupt.sl.wanandroidmk.permission.EasyRequest
 import cqupt.sl.wanandroidmk.res.Res
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import retrofit2.http.Multipart
 
 
 class MainActivity : AppCompatActivity() {
@@ -32,12 +41,16 @@ class MainActivity : AppCompatActivity() {
     private val tabLayoutY: Float by lazy {
         tabLayout.y
     }
+    private var allowBack = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        Res.BASE_PATH = filesDir
-        Res.BASE_CACHE_PATH = cacheDir
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
+        Thread {
+            Res.BASE_PATH = filesDir
+            Res.BASE_CACHE_PATH = cacheDir
+        }.run()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (EasyRequest.checkPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 EasyRequest.request(
@@ -83,13 +96,34 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_BACK){
+            if (allowBack){
+                finish()
+                return true
+            }
+            Toast.makeText(this,"再按一次退出",Toast.LENGTH_SHORT).show()
+            allowBack = true
+            GlobalScope.launch {
+                delay(1000)
+                allowBack = false
+            }
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(newBase)
+        MultiDex.install(this)
+    }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Log.e("SL","code = $requestCode")
         when (requestCode) {
             REQUEST_STORAGE -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PERMISSION_GRANTED) {
@@ -121,5 +155,10 @@ class MainActivity : AppCompatActivity() {
                 finish()
             }
         }
+    }
+
+    override fun finish() {
+        super.finish()
+        overridePendingTransition(R.anim.anim_null,R.anim.scale_to_min)
     }
 }

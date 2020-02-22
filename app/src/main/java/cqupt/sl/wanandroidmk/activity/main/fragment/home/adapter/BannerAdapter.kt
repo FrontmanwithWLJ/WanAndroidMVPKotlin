@@ -1,4 +1,4 @@
-package cqupt.sl.wanandroidmk.home.adapter
+package cqupt.sl.wanandroidmk.activity.main.fragment.home.adapter
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -14,7 +13,7 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import cqupt.sl.wanandroidmk.res.Res
 import cqupt.sl.wanandroidmk.response.home.item.BannerItem
-import cqupt.sl.wanandroidmk.web.WebActivity
+import cqupt.sl.wanandroidmk.activity.web.WebActivity
 import cqupt.sl.wanandroidmk.widget.banner.BannerAdapter
 import kotlinx.coroutines.*
 import java.io.File

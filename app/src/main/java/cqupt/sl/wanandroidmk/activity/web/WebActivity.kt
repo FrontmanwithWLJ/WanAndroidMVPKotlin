@@ -1,4 +1,4 @@
-package cqupt.sl.wanandroidmk.web
+package cqupt.sl.wanandroidmk.activity.web
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -9,23 +9,28 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.KeyEvent
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import cqupt.sl.wanandroidmk.R
 import kotlinx.android.synthetic.main.activity_web.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.lang.Exception
 
 class WebActivity : AppCompatActivity(), View.OnClickListener,
     SwipeRefreshLayout.OnRefreshListener {
     private var url: String? = ""
     private var collected = false
+    private val tabHeight by lazy { web_tab.height }
+    private val tabY by lazy { web_tab.y }
+    private var downY:Float = 0f
 
     companion object {
         fun goToWeb(context: Context, url: String, collected: Boolean) {
@@ -39,11 +44,23 @@ class WebActivity : AppCompatActivity(), View.OnClickListener,
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_web)
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
+        overridePendingTransition(R.anim.scale_to_max,R.anim.anim_null)
         init()
+    }
+
+    override fun finish() {
+        super.finish()
+        overridePendingTransition(R.anim.anim_null,R.anim.scale_to_min)
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun init() {
+        //设置状态栏字体颜色
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        }
         web_refresh.setColorSchemeColors(Color.GRAY, Color.BLACK)
         web_progress.hide()
         web_collect.setOnClickListener(this)
@@ -66,12 +83,46 @@ class WebActivity : AppCompatActivity(), View.OnClickListener,
     }
 
     private fun getInfFromIntent(intent: Intent) {
-        url = intent.getStringExtra("url")
-        collected = intent.getBooleanExtra("collected", false)
+        Thread {
+            url = intent.getStringExtra("url")
+            collected = intent.getBooleanExtra("collected", false)
+        }.run()
     }
 
     private fun collect(collected: Boolean) {
         web_collect.isEnabled = !collected
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        downY = when(ev!!.action){
+            MotionEvent.ACTION_DOWN->{
+                ev.y
+            }
+            else ->{
+                val offsetY = ev.y - downY
+                if (offsetY !in -2f..2f && web_webview.canScrollVertically(-1))//不可下拉时，不移动tab
+                    moveTab(offsetY)
+                ev.y
+            }
+        }
+        return super.dispatchTouchEvent(ev)
+    }
+
+    private fun moveTab(offsetY: Float) {
+        val newY = web_tab.y
+        val bottomLine = tabY + tabHeight
+        if (offsetY < 0 && newY in tabY..bottomLine) {
+            web_tab.y = when {
+                web_tab.y - offsetY > bottomLine -> bottomLine
+                else -> web_tab.y - offsetY
+            }
+        } else if (offsetY > 0 && newY in tabY..bottomLine) {
+            web_tab.y = when {
+                web_tab.y - offsetY < tabY -> tabY
+                else -> web_tab.y - offsetY
+            }
+        }
+
     }
 
     //拦截返回按钮
@@ -108,7 +159,6 @@ class WebActivity : AppCompatActivity(), View.OnClickListener,
         web_webview.loadDataWithBaseURL(null, "", "text/html", "utf-8", null)
         //从父容易移除webView
         (web_webview.parent as ViewGroup).removeView(web_webview)
-
         web_webview.destroy()
         super.onDestroy()
     }
